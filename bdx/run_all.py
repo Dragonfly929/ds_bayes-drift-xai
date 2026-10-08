@@ -95,6 +95,15 @@ def _elec_job(args):
     return rows, counts, dict(model=model, seed=seed, acc_ref=tr["acc_ref"], acc_stream=float(1 - tr["err"].mean()))
 
 
+def _save(df, path, merge, models):
+    """Write a result table; with merge=True keep the existing rows of the other models."""
+    if merge and os.path.exists(path):
+        old = pd.read_csv(path)
+        old = old[~old["model"].isin(models)]
+        df = pd.concat([old, df], ignore_index=True)
+    df.to_csv(path, index=False)
+
+
 def config_hash(cfg):
     return hashlib.sha256(json.dumps(cfg, sort_keys=True).encode()).hexdigest()[:12]
 
@@ -106,10 +115,15 @@ def main(argv=None):
     ap.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2)))
     ap.add_argument("--quick", action="store_true")
     ap.add_argument("--skip", nargs="*", default=[], help="parts to skip: grid xai elec2 example")
+    ap.add_argument("--models", nargs="*", default=None, help="run only these models (e.g. --models rf)")
+    ap.add_argument("--merge", action="store_true",
+                    help="add the new rows to the existing CSVs in --out, replacing rows of the same models")
     a = ap.parse_args(argv)
     cfg = yaml.safe_load(open(a.config))
     if a.out is None:   # a quick check never overwrites the paper's results
         a.out = os.path.join(D.ROOT, "results_quick" if a.quick else "results")
+    if a.models:
+        cfg["grid"]["models"] = [m for m in cfg["grid"]["models"] if m in a.models]
     if a.quick:
         cfg["seeds"] = cfg["seeds"][:2]
         cfg["grid"]["models"] = ["mcd"]
@@ -140,8 +154,8 @@ def main(argv=None):
                     print("ERROR", err)
                 if (i + 1) % 10 == 0:
                     print(f"  {i + 1}/{len(jobs)} done ({time.time() - t_all:.0f}s)", flush=True)
-        pd.DataFrame(rows).to_csv(os.path.join(a.out, "runs.csv"), index=False)
-        pd.DataFrame(srows).to_csv(os.path.join(a.out, "signals.csv"), index=False)
+        _save(pd.DataFrame(rows), os.path.join(a.out, "runs.csv"), a.merge, cfg["grid"]["models"])
+        _save(pd.DataFrame(srows), os.path.join(a.out, "signals.csv"), a.merge, cfg["grid"]["models"])
 
     if "xai" not in a.skip:
         xc = cfg["xai"]
@@ -169,8 +183,8 @@ def main(argv=None):
                 r, c, m = f.result()
                 rows += r
                 counts.append({**m, **c})
-        pd.DataFrame(rows).to_csv(os.path.join(a.out, "elec2.csv"), index=False)
-        pd.DataFrame(counts).to_csv(os.path.join(a.out, "elec2_alarm_counts.csv"), index=False)
+        _save(pd.DataFrame(rows), os.path.join(a.out, "elec2.csv"), a.merge, cfg["grid"]["models"])
+        _save(pd.DataFrame(counts), os.path.join(a.out, "elec2_alarm_counts.csv"), a.merge, cfg["grid"]["models"])
 
     if "example" not in a.skip:
         from .experiment import run_one
@@ -188,7 +202,14 @@ def main(argv=None):
                                   river=river.__version__, shap=shap.__version__, sklearn=sklearn.__version__),
                     datasets={k: dict(file=v.file, sha256=v.sha256, licence=v.licence) for k, v in D.SPECS.items()},
                     wall_seconds=time.time() - t_all)
-    json.dump(manifest, open(os.path.join(a.out, "manifest.json"), "w"), indent=2, default=str)
+    mpath = os.path.join(a.out, "manifest.json")
+    if a.merge and os.path.exists(mpath):
+        old = json.load(open(mpath))
+        old.setdefault("additional_runs", []).append(
+            dict(models=cfg["grid"]["models"], skipped=a.skip, wall_seconds=manifest["wall_seconds"],
+                 config_hash=manifest["config_hash"], versions=manifest["versions"]))
+        manifest = old
+    json.dump(manifest, open(mpath, "w"), indent=2, default=str)
     print(f"[done] {time.time() - t_all:.0f}s -> {a.out}")
 
 

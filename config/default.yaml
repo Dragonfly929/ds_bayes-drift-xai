@@ -22,6 +22,8 @@ model:
   M: 5                   # deep-ensemble members
   B: 10                  # bootstrap SVMs
   svm_max_train: 1500
+  rf_trees: 50           # random forest: trees = draws for the decomposition
+  rf_min_leaf: 5
 
 detectors:
   batch: 50
@@ -39,7 +41,7 @@ grid:
   tabular_datasets: [credit, telco]
   tabular_drifts: [none, covariate, sensor, real]
   extra: [[digits, none], [digits, covariate], [sea, none], [sea, real]]
-  models: [mcd, ens, bsvm]
+  models: [mcd, ens, bsvm, rf]   # rf added after the pre-registered analysis (additional, see analyze.py)
   abrupt: [[credit, covariate], [credit, sensor], [digits, covariate]]   # width=0 ablation
 
 xai:

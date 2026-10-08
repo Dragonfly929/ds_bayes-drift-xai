@@ -66,3 +66,17 @@ def test_end_to_end_small():
     cfg["model"]["epochs"] = 5
     out = run_one("digits", "covariate", "mcd", 0, cfg)
     assert len(out["rows"]) == 20 and len(out["signal_rows"]) == 5
+
+
+def test_random_forest_samples_and_decomposition():
+    from bdx.models import RandomForestUQ
+    rng = np.random.default_rng(3)
+    X = rng.normal(size=(400, 4))
+    y = (X[:, 0] + X[:, 1] > 0).astype(int)
+    m = RandomForestUQ(2, n_trees=20, min_leaf=5, seed=0).fit(X, y)
+    S = m.predict_samples(X[:50])
+    assert S.shape == (20, 50, 2) and np.allclose(S.sum(-1), 1)
+    d = decompose(S)
+    assert np.allclose(d["tu"], d["au"] + d["eu"], atol=1e-9)
+    far = decompose(m.predict_samples(X[:50] + 8.0))          # far outside the training data
+    assert far["eu"].mean() >= 0

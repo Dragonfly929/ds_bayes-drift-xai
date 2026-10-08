@@ -11,6 +11,12 @@ That common interface is what lets the same decomposition (``uncertainty.py``) b
 * ``BootstrapSVM``   the *frequentist* counterpart: B RBF-SVMs fitted on bootstrap resamples, each with
                      Platt-scaled probabilities. Spread across members approximates the sampling
                      distribution of the estimator, not a posterior.
+* ``RandomForestUQ`` a second *frequentist* ensemble (Breiman, 2001): every tree is grown on a bootstrap
+                     resample, so the trees play the role of the S draws. Leaf class frequencies give each
+                     tree's p(y|x) (min_samples_leaf > 1 keeps them away from 0/1), and the entropy
+                     decomposition of Shaker & Huellermeier (2020) applies unchanged. Trees extrapolate
+                     *flat* (constant outside the data), unlike ReLU nets (linear) and RBF-SVMs (decay to
+                     the bias) - added to separate "frequentist" from "how the model extrapolates" in H5.
 
 Masks for MC-Dropout are drawn explicitly and are shared across the batch inside one pass, so every pass
 is one fixed network theta_s ~ q(theta). This makes epistemic uncertainty a deterministic function of x,
@@ -155,6 +161,28 @@ class BootstrapSVM:
         return np.stack(out)
 
 
+class RandomForestUQ:
+    kind = "frequentist"
+
+    def __init__(self, n_classes, n_trees=50, min_leaf=5, seed=0):
+        self.nc, self.n_trees, self.min_leaf, self.seed = n_classes, n_trees, min_leaf, seed
+
+    def fit(self, X, y):
+        from sklearn.ensemble import RandomForestClassifier
+        self.rf = RandomForestClassifier(n_estimators=self.n_trees, min_samples_leaf=self.min_leaf,
+                                         max_features="sqrt", bootstrap=True, n_jobs=1,
+                                         random_state=self.seed).fit(X, y)
+        return self
+
+    def predict_samples(self, X):
+        X = np.asarray(X, dtype=np.float32)
+        out = np.zeros((len(self.rf.estimators_), len(X), self.nc))
+        cols = self.rf.classes_.astype(int)
+        for i, t in enumerate(self.rf.estimators_):
+            out[i][:, cols] = t.predict_proba(X)
+        return out
+
+
 def make_model(name: str, n_classes: int, seed: int, cfg: dict):
     mc = cfg.get("model", {})
     if name == "mcd":
@@ -166,9 +194,12 @@ def make_model(name: str, n_classes: int, seed: int, cfg: dict):
                             epochs=mc.get("epochs", 60), weight_decay=mc.get("weight_decay", 1e-4), seed=seed)
     if name == "bsvm":
         return BootstrapSVM(n_classes, B=mc.get("B", 10), max_train=mc.get("svm_max_train", 1500), seed=seed)
+    if name == "rf":
+        return RandomForestUQ(n_classes, n_trees=mc.get("rf_trees", 50), min_leaf=mc.get("rf_min_leaf", 5), seed=seed)
     raise ValueError(name)
 
 
 MODEL_LABELS = {"mcd": "MC-Dropout MLP (Bayesian approx.)",
                 "ens": "Deep Ensemble (Bayesian approx.)",
-                "bsvm": "Bootstrap RBF-SVM (frequentist)"}
+                "bsvm": "Bootstrap RBF-SVM (frequentist)",
+                "rf": "Random forest (frequentist)"}

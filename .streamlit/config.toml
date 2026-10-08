@@ -1,7 +1,65 @@
-[theme]
-base = "light"
-primaryColor = "#2a78d6"
-font = "sans serif"
-
 [server]
 maxUploadSize = 50
+enableStaticServing = true      # serves ./static (the bundled fonts) at app/static/
+
+[theme]
+base = "light"
+primaryColor = "#D93D57"        # coral: the proposed log(EU/AU) signal and primary actions
+backgroundColor = "#F6F4F9"     # pale lavender page
+secondaryBackgroundColor = "#ECE8F3"
+textColor = "#1E2340"           # deep indigo ink
+linkColor = "#2B67B5"
+borderColor = "#DCD7E8"
+showWidgetBorder = true
+baseRadius = "10px"
+baseFontSize = 17
+font = "Atkinson Hyperlegible, sans-serif"
+headingFont = "Bricolage Grotesque, sans-serif"
+headingFontWeights = [700, 700, 600, 600, 600, 600]
+metricValueFontWeight = 700
+chartCategoricalColors = ["#E0475F", "#2B67B5", "#13A08E", "#C98500", "#9B59C9", "#3B3F58"]
+
+[[theme.fontFaces]]
+family = "Atkinson Hyperlegible"
+url = "app/static/fonts/atkinson-hyperlegible-latin-400-normal.woff2"
+weight = 400
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Atkinson Hyperlegible"
+url = "app/static/fonts/atkinson-hyperlegible-latin-400-italic.woff2"
+weight = 400
+style = "italic"
+
+[[theme.fontFaces]]
+family = "Atkinson Hyperlegible"
+url = "app/static/fonts/atkinson-hyperlegible-latin-700-normal.woff2"
+weight = 700
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Bricolage Grotesque"
+url = "app/static/fonts/bricolage-grotesque-latin-500-normal.woff2"
+weight = 500
+
+[[theme.fontFaces]]
+family = "Bricolage Grotesque"
+url = "app/static/fonts/bricolage-grotesque-latin-600-normal.woff2"
+weight = 600
+
+[[theme.fontFaces]]
+family = "Bricolage Grotesque"
+url = "app/static/fonts/bricolage-grotesque-latin-700-normal.woff2"
+weight = 700
+
+[[theme.fontFaces]]
+family = "Bricolage Grotesque"
+url = "app/static/fonts/bricolage-grotesque-latin-800-normal.woff2"
+weight = 800
+
+[theme.sidebar]
+backgroundColor = "#26254A"     # night indigo
+secondaryBackgroundColor = "#34325E"
+textColor = "#EEEBF7"
+borderColor = "#4A4775"
+primaryColor = "#E0475F"

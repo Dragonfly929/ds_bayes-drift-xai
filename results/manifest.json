@@ -144,5 +144,26 @@
     }
   },
   "wall_seconds": 179.9924931526184,
-  "note": "Full grid + XAI ran in one invocation (`python -m bdx.run_all --jobs 2`, ~2350 s on 2 CPU cores); the Elec2 and example stages were re-run with `--skip grid xai` after a statsmodels API fix (wall_seconds below is for that second invocation only). Same config and seeds."
+  "note": "Full grid + XAI ran in one invocation (`python -m bdx.run_all --jobs 2`, ~2350 s on 2 CPU cores); the Elec2 and example stages were re-run with `--skip grid xai` after a statsmodels API fix (wall_seconds below is for that second invocation only). Same config and seeds.",
+  "additional_runs": [
+    {
+      "models": [
+        "rf"
+      ],
+      "skipped": [
+        "xai",
+        "example"
+      ],
+      "wall_seconds": 371.85938024520874,
+      "config_hash": "252fe346adf3",
+      "versions": {
+        "numpy": "2.5.3",
+        "pandas": "3.0.6",
+        "torch": "2.14.1+cu130",
+        "river": "0.26.1",
+        "shap": "0.52.0",
+        "sklearn": "1.9.1"
+      }
+    }
+  ]
 }

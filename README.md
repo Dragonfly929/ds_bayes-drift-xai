@@ -52,7 +52,7 @@ with ground truth from real data; (O3) test H1–H3 statistically across dataset
 | **H2** ratio beats components | **confirmed** | AUROC 0.80 vs EU 0.67, TU 0.53, AU 0.50 (Holm p < 0.001, 8/8 tests) |
 | **H3** P(y\|x) boundary | **confirmed** (H1 refuted there, as predicted) | all signals AUROC ≈ 0.50, TOST p < 0.001; supervised detectors catch 100 % |
 | **H4** XAI validation | **confirmed for SHAP, refuted for LIME** | SHAP rank of drifted features 0.78–0.92 (Holm p ≤ 0.03); LIME ≈ 0.5 |
-| **H5** Bayes vs frequentist | **ratio advantage only for Bayesian NNs** | MC-Dropout/ensemble: LR > EU; bootstrap-SVM: EU 0.78 > LR 0.61 — ReLU nets get *over-confident* off-data (AU↓, EU↑), RBF-SVMs revert to the prior (AU↑, EU↑) |
+| **H5** Bayes vs frequentist | **ratio advantage only for Bayesian NNs** | MC-Dropout/ensemble: LR > EU; bootstrap-SVM: EU 0.78 > LR 0.61 — ReLU nets get *over-confident* off-data (AU↓, EU↑), RBF-SVMs revert to the prior (AU↑, EU↑). *Added later:* a random forest (2nd frequentist model) repeats the SVM pattern: EU 0.77 > LR 0.61 |
 | Elec2 (natural) | co-movement, no lead | corr(LR, error) = 0.30 at lag 0, symmetric; KS on inputs raises 148 alarms vs 7 for PH[LR] |
 
 Honest caveat: on the clean synthetic drifts a plain feature-wise KS test is a better early-warning detector;
@@ -63,7 +63,8 @@ on the natural stream it is unusable. Full report: `results/summary/hypotheses.m
 bdx/                 the tool (importable package)
   data.py            loaders, SHA-256 provenance, CSV upload support, SEA & digits
   drift.py           drift injection with ground truth (none / covariate / sensor / real)
-  models.py          MC-Dropout MLP, Deep Ensemble, Bootstrap-SVM — common predict_samples() API
+  models.py          MC-Dropout MLP, Deep Ensemble, Bootstrap-SVM, Random forest — common predict_samples() API
+  ui.py              the app's visual layer: palette, styles, hero trace, chart theme
   uncertainty.py     TU = AU + EU decomposition, log-ratio signal
   detectors.py       River baselines + own BOCPD, own EM-GMM, KS; threshold calibration
   xai.py             KernelSHAP / GradientSHAP / LIME on EU and on predictions; localisation & stability
@@ -79,6 +80,7 @@ docs/GUIDE.md        study guide: theory -> implementation, line by line
 docs/article/        the paper (Romanian): articol.md source, articol.docx, articol.pdf, build.py
 tests/               unit tests of the from-scratch components
 streamlit_app.py     interactive interface
+static/fonts/        bundled open-licence fonts for the app (Atkinson Hyperlegible, Bricolage Grotesque)
 ```
 
 ## 4. Run it (VS Code)

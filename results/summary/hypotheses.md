@@ -52,6 +52,7 @@
 | bsvm    | 0.699 |  0.713 | 0.779 | 0.611 | 0.713 |
 | ens     | 0.426 |  0.486 | 0.672 | 0.826 | 0.486 |
 | mcd     | 0.382 |  0.454 | 0.629 | 0.811 | 0.454 |
+| rf      | 0.681 |  0.713 | 0.775 | 0.613 | 0.713 |
 
 Paired test of the ratio vs its components, per model (two-sided, Holm):
 
@@ -97,3 +98,26 @@ Paired test of the ratio vs its components, per model (two-sided, Holm):
 | PH[err]       |             0.8  |             38 |            0.365854  |                     0.8  |                  438.5 |
 | PH[eu]        |             1    |             96 |            0.365854  |                     1    |                  494   |
 | PH[lr]        |             0.96 |             50 |            0.536585  |                     0.96 |                  474   |
+
+## Additional analysis (added after the pre-registered study): random forest
+
+A second frequentist model whose trees extrapolate *flat* outside the data. It separates the question 'is it the frequentist approach?' from 'is it how the model extrapolates?' (H5).
+
+Median AUROC on P(x) drifts:
+
+|    au |   conf |    eu |    lr |    tu |
+|------:|-------:|------:|------:|------:|
+| 0.681 |  0.713 | 0.775 | 0.613 | 0.713 |
+
+Paired test of the ratio vs its components (two-sided, Holm within this model):
+
+| model   | comparison   |   n |   median_lr |   median_other |   share_lr_better |   p_two_sided |   holm_p |
+|:--------|:-------------|----:|------------:|---------------:|------------------:|--------------:|---------:|
+| rf      | lr vs eu     |  25 |      0.6132 |         0.7745 |              0.04 |        0      |   0      |
+| rf      | lr vs tu     |  25 |      0.6132 |         0.7131 |              0.36 |        0.0038 |   0.0038 |
+
+Elec2, correlation of each signal with the error rate at lag 0 (median over seeds):
+
+|     au |   conf |     eu |    lr |    tu |
+|-------:|-------:|-------:|------:|------:|
+| -0.171 | -0.186 | -0.016 | 0.183 | -0.14 |

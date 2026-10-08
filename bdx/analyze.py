@@ -24,19 +24,31 @@ from scipy import stats as sst
 from . import stats as S
 from .data import ROOT
 
-# reference palette (validated categorical order) + neutral inks
-C = {"lr": "#2a78d6", "eu": "#eb6834", "au": "#1baf7a", "tu": "#eda100", "conf": "#e87ba4",
-     "sup": "#52514e", "ks": "#4a3aa7", "em": "#008300", "ink": "#0b0b0b", "muted": "#8a8984",
-     "grid": "#e4e3df", "red": "#e34948"}
+PRIMARY_MODELS = ["mcd", "ens", "bsvm"]      # pre-registered; "rf" = additional analysis
+
+# Palette shared with the app (bdx/ui.py), validated for colour-blind separation. Coral = the proposed signal.
+C = {"lr": "#E0475F", "eu": "#2B67B5", "au": "#13A08E", "tu": "#C98500", "conf": "#9B59C9",
+     "sup": "#3B3F58", "ks": "#6C5B7B", "em": "#C06C84", "ink": "#1E2340", "muted": "#8A87A3",
+     "grid": "#ECE9F2", "red": "#B7791F", "ramp": "#EEE8F7"}
 SIG_ORDER = ["lr", "eu", "au", "tu", "conf"]
 SIG_NAME = {"lr": "log(EU/AU)", "eu": "EU", "au": "AU", "tu": "TU", "conf": "1-maxprob"}
 PX_DRIFTS = ["covariate", "sensor"]          # drifts that change P(x)
 
+# bundled open-licence fonts (bdx/fonts): Atkinson Hyperlegible for text, Bricolage Grotesque for titles
+from matplotlib import font_manager as _fm  # noqa: E402
+
+for _f in sorted(os.listdir(os.path.join(os.path.dirname(__file__), "fonts"))):
+    if _f.endswith(".ttf"):
+        _fm.fontManager.addfont(os.path.join(os.path.dirname(__file__), "fonts", _f))
+TITLE = dict(fontfamily=["Bricolage Grotesque", "DejaVu Sans"], fontweight=700, fontsize=11, color=C["ink"], pad=10)
+
 plt.rcParams.update({
-    "figure.dpi": 150, "savefig.dpi": 200, "font.size": 9, "axes.titlesize": 10, "axes.labelsize": 9,
-    "axes.edgecolor": C["muted"], "axes.linewidth": 0.6, "axes.grid": True, "grid.color": C["grid"],
-    "grid.linewidth": 0.6, "axes.spines.top": False, "axes.spines.right": False, "legend.frameon": False,
-    "xtick.color": "#52514e", "ytick.color": "#52514e", "axes.titleweight": "bold",
+    "figure.dpi": 150, "savefig.dpi": 220, "font.family": ["Atkinson Hyperlegible", "DejaVu Sans"],   # fallback for ≈ Δ ρ ○ ● "font.size": 9.5,
+    "axes.titlesize": 11, "axes.labelsize": 9.5, "axes.labelcolor": "#4A4E68", "text.color": C["ink"],
+    "axes.edgecolor": "#C9C4D8", "axes.linewidth": 0.8, "axes.grid": True, "grid.color": C["grid"],
+    "grid.linewidth": 0.8, "axes.spines.top": False, "axes.spines.right": False, "axes.spines.left": False,
+    "legend.frameon": False, "xtick.color": "#5A5F7A", "ytick.color": "#5A5F7A", "ytick.major.size": 0,
+    "axes.axisbelow": True, "figure.facecolor": "white", "axes.facecolor": "white", "lines.solid_capstyle": "round",
 })
 
 
@@ -261,7 +273,7 @@ def fig_example(res, out):
     fig, axes = plt.subplots(4, 1, figsize=(7.2, 7.0), sharex=True, gridspec_kw={"hspace": 0.25})
     ramp_end = t0 + int(np.argmax(z["p"][t0:] >= 1)) if (z["p"] >= 1).any() else L
     for ax in axes:
-        ax.axvspan(t0, ramp_end, color="#f3efe6", lw=0)
+        ax.axvspan(t0, ramp_end, color=C["ramp"], lw=0)
         ax.axvline(t0, color=C["muted"], lw=0.8, ls="--")
         if t_acc > 0:
             ax.axvline(t_acc, color=C["red"], lw=0.8)
@@ -269,7 +281,7 @@ def fig_example(res, out):
     ax.plot(roll(1 - z["err"], 300), color=C["ink"], lw=1.4)
     ax.axhline(float(z["acc_thr"]), color=C["red"], lw=0.8, ls=":")
     ax.set_ylabel("rolling accuracy\n(needs labels)")
-    ax.set_title("Credit default, covariate drift, MC-Dropout (seed 0)", loc="left")
+    ax.set_title("Credit default, covariate drift, MC-Dropout (seed 0)", loc="left", **TITLE)
     ax.text(t0 + 20, ax.get_ylim()[0] + 0.02, "drift ramp", color=C["muted"], fontsize=8)
     if t_acc > 0:
         ax.text(t_acc + 30, float(z["acc_thr"]) + 0.03, "visible accuracy drop", color=C["red"], fontsize=8)
@@ -309,8 +321,8 @@ def fig_auroc(sig, out):
             ax.plot([x, x], [lo, hi], color=C["ink"], lw=0.8)
     ax.axhline(0.5, color=C["ink"], lw=0.8)
     for i in (3, 4):
-        ax.text(i, 0.53, "all signals ≈ 0.5\n(invisible without labels)", ha="center", va="bottom", fontsize=7.5,
-                color=C["muted"])
+        ax.text(i, 0.53, "all ≈ 0.5:\ninvisible\nwithout labels", ha="center", va="bottom", fontsize=8,
+                color=C["muted"], linespacing=1.25)
     ax.set_xticks(range(len(order)), ["covariate\nP(x)", "sensor\nP(x)+P(y|x)", "digits rotation\nP(x)",
                                       "real\nP(y|x)", "SEA\nP(y|x)"])
     ax.set_ylabel("AUROC drifted vs pre-drift\n(0.5 = no information)")
@@ -351,7 +363,7 @@ def fig_tradeoff(tab, out):
     ax.legend(handles=h, loc="center left", bbox_to_anchor=(1.06, 0.5), title="colour = signal\nmarker = detector",
               title_fontsize=7.5, fontsize=7.5)
     ax.set_xlim(right=ax.get_xlim()[1] + 0.02)
-    ax.set_title("Early warning vs. false alarms (P(x)-changing drifts)", loc="left")
+    ax.set_title("Early warning vs. false alarms (P(x)-changing drifts)", loc="left", **TITLE)
     fig.savefig(os.path.join(out, "fig3_tradeoff.png"), bbox_inches="tight")
     plt.close(fig)
 
@@ -368,7 +380,7 @@ def fig_forest(st, ma, out):
     ax.axvline(0, color=C["muted"], lw=0.8)
     ax.set_yticks(list(y) + [0], list(st["study"]) + [f"Random effects (I²={ma['I2']:.0%})"])
     ax.set_xlabel("delay advantage of PH[log(EU/AU)] over PH[error]  (samples; >0 = earlier)")
-    ax.set_title("Meta-analysis across datasets", loc="left")
+    ax.set_title("Meta-analysis across datasets", loc="left", **TITLE)
     ax.grid(axis="y", visible=False)
     fig.savefig(os.path.join(out, "fig4_meta_forest.png"), bbox_inches="tight")
     plt.close(fig)
@@ -392,7 +404,7 @@ def fig_xai(xai, out):
     axes[0].set_xticks(range(len(drifts)), drifts)
     axes[0].set_ylabel("rank of drifted features in Δ|attribution|\n(1 = top, 0.5 = chance)")
     axes[0].set_ylim(0, 1.05)
-    axes[0].set_title("Localisation", loc="left")
+    axes[0].set_title("Localisation", loc="left", **TITLE)
     axes[0].grid(axis="x", visible=False)
     for j, e in enumerate(expl):
         for i, dr in enumerate(drifts):
@@ -403,7 +415,7 @@ def fig_xai(xai, out):
             axes[1].scatter([x], [d[f"{e}_rho_drift"].median()], color=cols[j], s=22, zorder=3)
     axes[1].set_xticks(range(len(drifts)), drifts)
     axes[1].set_ylabel("Spearman ρ of global importance\n(○ pre vs pre, ● pre vs alarm)")
-    axes[1].set_title("Stability", loc="left")
+    axes[1].set_title("Stability", loc="left", **TITLE)
     axes[1].grid(axis="x", visible=False)
     axes[0].legend(ncol=5, loc="upper left", bbox_to_anchor=(0, 1.25), fontsize=7.5)
     fig.savefig(os.path.join(out, "fig5_xai.png"), bbox_inches="tight")
@@ -420,16 +432,17 @@ def fig_elec(el_t, out):
     ax.axvline(0, color=C["muted"], lw=0.8, ls="--")
     ax.set_xlabel("lag k (blocks of 200 samples); k > 0: signal leads the error rate")
     ax.set_ylabel("corr(signal_t, error_{t+k})")
-    ax.set_title("Elec2 natural drift: lead-lag with moving-block bootstrap 95% CI", loc="left")
+    ax.set_title("Elec2 natural drift: lead-lag with moving-block bootstrap 95% CI", loc="left", **TITLE)
     ax.legend()
     fig.savefig(os.path.join(out, "fig6_elec2_leadlag.png"), bbox_inches="tight")
     plt.close(fig)
 
 
 def fig_models(by_model, out):
-    fig, ax = plt.subplots(figsize=(6.0, 2.8))
-    models = [m for m in ["mcd", "ens", "bsvm"] if m in by_model.index]
+    fig, ax = plt.subplots(figsize=(7.6, 3.0))
+    models = [m for m in ["mcd", "ens", "bsvm", "rf"] if m in by_model.index]
     names = {"mcd": "MC-Dropout\n(Bayesian approx.)", "ens": "Deep Ensemble\n(Bayesian approx.)",
+             "rf": "Random forest\n(frequentist, added)",
              "bsvm": "Bootstrap SVM\n(frequentist)"}
     w = 0.16
     for j, s in enumerate(SIG_ORDER):
@@ -459,7 +472,12 @@ def main(argv=None):
     out = os.path.join(a.res, "summary")
     os.makedirs(out, exist_ok=True)
     os.makedirs(a.fig, exist_ok=True)
-    runs, sig = load(a.res)
+    runs_all, sig_all = load(a.res)
+    # Pre-registered analyses use the three original models. The random forest (rf) was added afterwards and is
+    # reported separately as an additional analysis (H5 only), so the pre-registered numbers stay unchanged.
+    runs = runs_all[runs_all.model.isin(PRIMARY_MODELS)].copy()
+    runs.attrs["abrupt"] = runs_all.attrs["abrupt"][runs_all.attrs["abrupt"].model.isin(PRIMARY_MODELS)]
+    sig = sig_all[sig_all.model.isin(PRIMARY_MODELS)].copy()
 
     tab = detector_table(runs)
     tab.to_csv(os.path.join(out, "T1_detectors.csv"), index=False)
@@ -480,8 +498,13 @@ def main(argv=None):
     h1.to_csv(os.path.join(out, "H1_early_warning.csv"), index=False)
     h2, by_model = h2_ratio(sig, runs)
     h2.to_csv(os.path.join(out, "H2_ratio.csv"), index=False)
+    by_model = sig_all[sig_all.drift.isin(PX_DRIFTS)].groupby(["model", "signal"])["auroc"].median().unstack()
     by_model.to_csv(os.path.join(out, "H5_auroc_by_model.csv"))
-    h5 = h2_by_model(sig)
+    h5 = h2_by_model(sig)                                   # pre-registered models, Holm over these only
+    rf_ok = (sig_all.model == "rf").any()
+    if rf_ok:
+        h5_rf = h2_by_model(sig_all[sig_all.model == "rf"])  # additional model, its own Holm family
+        h5_rf.to_csv(os.path.join(out, "ADD_rf_ratio_test.csv"), index=False)
     h5.to_csv(os.path.join(out, "H5_ratio_by_model.csv"), index=False)
     # H1 broken down by scenario (where does the early warning work?)
     sub = runs[runs.drift.isin(PX_DRIFTS)].copy()
@@ -521,7 +544,8 @@ def main(argv=None):
         fig_xai(xai, a.fig)
     el_ok = os.path.exists(os.path.join(a.res, "elec2.csv"))
     if el_ok:
-        el = pd.read_csv(os.path.join(a.res, "elec2.csv"))
+        el_all = pd.read_csv(os.path.join(a.res, "elec2.csv"))
+        el = el_all[el_all.model.isin(PRIMARY_MODELS)]
         el_t, el_g = elec2_summary(el)
         el_t.to_csv(os.path.join(out, "E_elec2_crosscorr.csv"), index=False)
         el_g.to_csv(os.path.join(out, "E_elec2_granger.csv"))
@@ -568,6 +592,20 @@ def main(argv=None):
           "", h5.round(4).to_markdown(index=False), ""]
     if el_ok:
         L += ["## Elec2 (natural drift, no ground truth)", "", el_g.round(3).to_markdown(), ""]
+    L_add = []
+    if rf_ok:
+        rf_sig = sig_all[(sig_all.model == "rf") & sig_all.drift.isin(PX_DRIFTS)]
+        L_add += ["## Additional analysis (added after the pre-registered study): random forest", "",
+              "A second frequentist model whose trees extrapolate *flat* outside the data. It separates the question "
+              "'is it the frequentist approach?' from 'is it how the model extrapolates?' (H5).", "",
+              "Median AUROC on P(x) drifts:", "",
+              rf_sig.groupby("signal")["auroc"].median().round(3).to_frame().T.to_markdown(index=False), "",
+              "Paired test of the ratio vs its components (two-sided, Holm within this model):", "",
+              h5_rf.round(4).to_markdown(index=False), ""]
+        if el_ok and (el_all.model == "rf").any():
+            er = el_all[(el_all.model == "rf") & (el_all.lag == 0)].groupby("signal")["corr"].median().round(3)
+            L_add += ["Elec2, correlation of each signal with the error rate at lag 0 (median over seeds):", "",
+                  er.to_frame().T.to_markdown(index=False), ""]
     L += ["## Label-delay ablation (early-warning rate)", "",
           abl.pivot(index="label_delay", columns="detector", values="early_warning_rate").round(2).to_markdown()]
     if ab is not None:
@@ -575,6 +613,7 @@ def main(argv=None):
                 "PH[err]", "ADWIN[err]"]
         L += ["", "## Ablation: abrupt (width 0) vs gradual drift (credit covariate/sensor, digits rotation)", "",
               ab[ab.detector.isin(keep)].round(2).to_markdown(index=False)]
+    L += [""] + L_add
     open(os.path.join(out, "hypotheses.md"), "w").write("\n".join(L))
     print("\n".join(L))
 
