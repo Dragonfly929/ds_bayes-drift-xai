@@ -253,7 +253,9 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     md = open(os.path.join(HERE, "articol_smd.md"), encoding="utf8").read()
     md, order = number_citations(md)
-    md = md.replace("[[REFERENCES]]", references_block(order)) + "\n" + declaration_block()
+    md = md.replace("[[REFERENCES]]", references_block(order))
+    if "--declaration" in sys.argv:                # the originality declaration page is optional
+        md += "\n" + declaration_block()
     src = os.path.join(OUT, "_combined.md")
     open(src, "w", encoding="utf8").write(md)
     filt = os.path.join(HERE, "only_format.lua")
