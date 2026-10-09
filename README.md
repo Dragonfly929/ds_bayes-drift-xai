@@ -99,6 +99,8 @@ static/fonts/        bundled open-licence fonts for the app (Atkinson Hyperlegib
    ```
    In VS Code pick the interpreter `.venv` (`Ctrl+Shift+P` → *Python: Select Interpreter*).
 
+The interface opens in **Romanian**; switch to **English** with *Limba / Language* at the top of the sidebar.
+
 ### Using other data (reproducibility check)
 In the app choose **📤 Upload your own CSV**, pick the label column, a drift type, and run. In code:
 ```python

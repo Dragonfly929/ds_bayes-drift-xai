@@ -32,6 +32,8 @@ SIG = {"lr": CORAL, "eu": "#2B67B5", "au": "#13A08E", "tu": "#C98500", "conf": "
 OTHER = {"err": "#3B3F58", "ks": "#6C5B7B", "em": "#C06C84"}
 SIG_NAME = {"lr": "log(EU/AU)", "eu": "Epistemic EU", "au": "Aleatoric AU", "tu": "Total entropy",
             "conf": "1 − max p"}
+SIG_NAME_RO = {"lr": "log(EU/AU)", "eu": "Epistemică EU", "au": "Aleatorică AU", "tu": "Entropia totală",
+               "conf": "1 − max p"}
 
 FONT_BODY = "Atkinson Hyperlegible, sans-serif"
 FONT_HEAD = "Bricolage Grotesque, sans-serif"
@@ -108,12 +110,19 @@ section[data-testid="stSidebar"] .bdx-side-note {{ color: {NIGHT_SOFT}; font-siz
 """
 
 
-def hero_html(res_dir: str) -> str:
+def hero_html(res_dir: str, lang: str = "en") -> str:
     """The hero panel with the real log(EU/AU) trace of the example experiment (credit, covariate, MC-Dropout)."""
-    head = ("<h1>A model that notices it has never seen this before</h1>"
-            "<p>Split a model's uncertainty into noise in the data (aleatoric) and the model's own ignorance "
-            "(epistemic). Their ratio, log(EU/AU), is watched as an alarm for a changing world, "
-            "without waiting for the correct answers.</p>")
+    ro = lang == "ro"
+    T = lambda en, r: r if ro else en
+    N = lambda n: f"{n:,}".replace(",", "\u202f") if ro else f"{n:,}"   # 2 860 in Romanian, 2,860 in English
+    head = T("<h1>A model that notices it has never seen this before</h1>"
+             "<p>Split a model's uncertainty into noise in the data (aleatoric) and the model's own ignorance "
+             "(epistemic). Their ratio, log(EU/AU), is watched as an alarm for a changing world, "
+             "without waiting for the correct answers.</p>",
+             "<h1>Un model care observă că nu a mai văzut așa ceva</h1>"
+             "<p>Incertitudinea modelului este separată în zgomotul din date (aleatorică) și propria ignoranță a "
+             "modelului (epistemică). Raportul lor, log(EU/AU), este urmărit ca alarmă pentru o lume care se "
+             "schimbă, fără a aștepta răspunsurile corecte.</p>")
     p = os.path.join(res_dir, "example_trace.npz")
     if not os.path.exists(p):
         return f'<div class="bdx-hero">{head}</div>'
@@ -165,26 +174,30 @@ def hero_html(res_dir: str) -> str:
         parts.append(vline(err_alarm, NIGHT_SOFT, False, f"error-based alarm, t = {err_alarm}", "start", y0 + 22,
                            "h-err"))
     parts.append(f'<text x="{x0}" y="{H - 8}" font-size="13" fill="{NIGHT_SOFT}" '
-                 'font-family="Atkinson Hyperlegible, sans-serif">record 0</text>')
+                 'font-family="Atkinson Hyperlegible, sans-serif">' + T("record 0", "înregistrarea 0") + '</text>')
     parts.append(f'<text x="{x1}" y="{H - 8}" text-anchor="end" font-size="13" fill="{NIGHT_SOFT}" '
-                 f'font-family="Atkinson Hyperlegible, sans-serif">record {L:,}</text>')
+                 f'font-family="Atkinson Hyperlegible, sans-serif">' + T(f"record {L:,}", f"înregistrarea {N(L)}") + '</text>')
     parts.append("</svg>")
     svg = base64.b64encode("".join(parts).encode()).decode()
-    img = (f'<img class="trace" src="data:image/svg+xml;base64,{svg}" alt="log(EU/AU) rises once the drift begins; '
-           f'our label-free alarm fires before the error-based detectors">')
+    img = (f'<img class="trace" src="data:image/svg+xml;base64,{svg}" alt="' + T("log(EU/AU) rises once the drift begins; our label-free alarm fires before the error-based detectors",
+                    "log(EU/AU) crește după începutul devierii; alarma fără etichete vine înaintea detectoarelor bazate pe eroare")
+           + '">')
     def k(color, text, dash=False):
         bar = (f'border-top:2px dashed {color};height:0' if dash else f'background:{color}')
         return f'<span><i style="{bar}"></i>{html.escape(text)}</span>'
-    items = [k(CORAL, "log(EU/AU) on credit data, covariate drift (moving average)"),
-             k(NIGHT_SOFT, f"drift begins, record {t0:,}", dash=True)]
+    items = [k(CORAL, T("log(EU/AU) on credit data, covariate drift (moving average)",
+                        "log(EU/AU) pe datele de credit, deviere a covariabilelor (medie mobilă)")),
+             k(NIGHT_SOFT, T(f"drift begins, record {t0:,}", f"începe devierea, înregistrarea {N(t0)}"), dash=True)]
     if alarm is not None:
         items.append(f'<span><b style="display:inline-block;width:11px;height:11px;border-radius:50%;'
-                     f'background:{CORAL};margin-right:.45rem;vertical-align:middle"></b>our alarm, record {alarm:,}'
-                     '</span>')
+                     f'background:{CORAL};margin-right:.45rem;vertical-align:middle"></b>'
+                     + T(f"our alarm, record {alarm:,}", f"alarma noastră, înregistrarea {N(alarm)}") + '</span>')
     if t_acc > 0:
-        items.append(k("#F4C86A", f"accuracy drop visible, record {t_acc:,}"))
+        items.append(k("#F4C86A", T(f"accuracy drop visible, record {t_acc:,}",
+                                    f"scăderea acurateței devine vizibilă, înregistrarea {N(t_acc)}")))
     if err_alarm is not None:
-        items.append(k(NIGHT_SOFT, f"first error-based alarm, record {err_alarm:,}"))
+        items.append(k(NIGHT_SOFT, T(f"first error-based alarm, record {err_alarm:,}",
+                                     f"prima alarmă bazată pe eroare, înregistrarea {N(err_alarm)}")))
     key = f'<div class="key">{"".join(items)}</div>'
     return f'<div class="bdx-hero">{head}{img}{key}</div>'
 
@@ -219,29 +232,63 @@ HYPOTHESES = [
 ]
 
 
-def hypotheses_html() -> str:
+HYPOTHESES_RO = [
+    ("H1", "Avertizare timpurie", "Alarma fără etichete vine înainte ca scăderea acurateței să devină vizibilă.",
+     "Mai devreme decât orice detector bazat pe eroare, dar înaintea scăderii vizibile doar în 51 % din rulări.",
+     "no", "Neconfirmată"),
+    ("H2", "Descompunerea contează", "log(EU/AU) separă datele deviate mai bine decât EU, AU, entropia totală sau 1 − max p.",
+     "Separare 0.80 față de 0.67 pentru EU; 8 din 8 teste semnificative.", "yes", "Confirmată"),
+    ("H3", "Limita", "Când se schimbă doar P(y|x), niciun semnal fără etichete nu poate vedea devierea.",
+     "Toate semnalele sunt la 0.50, echivalența cu hazardul fiind demonstrată statistic.", "yes", "Confirmată"),
+    ("H4", "Explicațiile validează alarma", "SHAP și LIME aplicate pe EU indică trăsăturile care au deviat cu adevărat.",
+     "SHAP da (rang 0.78–0.92); LIME rămâne la nivelul hazardului.", "part", "SHAP da, LIME nu"),
+    ("H5", "Bayesian vs frecventist", "Incertitudinea aposteriori și cea bootstrap se comportă diferit.",
+     "Raportul câștigă la rețelele neuronale și eșuează la SVM și la pădurea aleatoare.", "info", "Depinde de model"),
+]
+
+
+def hypotheses_html(lang: str = "en") -> str:
     rows = []
-    for n, name, claim, result, cls, verdict in HYPOTHESES:
+    for n, name, claim, result, cls, verdict in (HYPOTHESES_RO if lang == "ro" else HYPOTHESES):
         rows.append(f'<div><div class="n">{n}</div><div class="t"><b>{html.escape(name)}.</b> {html.escape(claim)}'
                     f'<span>{html.escape(result)}</span></div><div><span class="chip {cls}">{verdict}</span></div></div>')
     return f'<div class="bdx-hyp">{"".join(rows)}</div>'
 
 
-PIPELINE_DOT = f"""
+_PIPELINE = f"""
 digraph G {{ rankdir=LR; bgcolor="transparent"; nodesep=0.28; ranksep=0.42;
 node [shape=box, style="rounded,filled", fillcolor="{SURFACE}", color="#CFC8E0", penwidth=1.3,
       fontname="Atkinson Hyperlegible", fontsize=15, fontcolor="{INK}", margin="0.2,0.12"];
 edge [color="#9C97B5", arrowsize=0.7, penwidth=1.2];
-D [label="Real data\nwith checksum"];
-I [label="Stream with\na known drift"];
-M [label="Probabilistic\nmodel"];
-U [label="Uncertainty split\nlog(EU/AU)", fillcolor="#FCE8EB", color="{CORAL}", penwidth=1.8];
-A [label="Label-free\ndetectors"];
-S [label="Error-based detectors\n(need labels)"];
-X [label="Explain\nthe alarm"];
-R [label="Statistics\nover all runs"];
+D [label="@D"];
+I [label="@I"];
+M [label="@M"];
+U [label="@U", fillcolor="#FCE8EB", color="{CORAL}", penwidth=1.8];
+A [label="@A"];
+S [label="@S"];
+X [label="@X"];
+R [label="@R"];
 D -> I -> M -> U -> A -> X -> R; M -> S -> R; A -> R; }}
 """
+_PIPE_LABELS = {
+    "en": {"D": "Real data\\nwith checksum", "I": "Stream with\\na known drift", "M": "Probabilistic\\nmodel",
+           "U": "Uncertainty split\\nlog(EU/AU)", "A": "Label-free\\ndetectors",
+           "S": "Error-based detectors\\n(need labels)", "X": "Explain\\nthe alarm", "R": "Statistics\\nover all runs"},
+    "ro": {"D": "Date reale cu\\nsumă de control", "I": "Flux cu deviere\\ncunoscută", "M": "Model\\nprobabilistic",
+           "U": "Descompunerea\\nincertitudinii\\nlog(EU/AU)", "A": "Detectoare\\nfără etichete",
+           "S": "Detectoare bazate pe eroare\\n(necesită etichete)", "X": "Explicarea\\nalarmei",
+           "R": "Statistici pe\\ntoate rulările"},
+}
+
+
+def pipeline_dot(lang: str = "en") -> str:
+    dot = _PIPELINE
+    for k, v in _PIPE_LABELS["ro" if lang == "ro" else "en"].items():
+        dot = dot.replace(f'"@{k}"', f'"{v}"')
+    return dot
+
+
+PIPELINE_DOT = pipeline_dot("en")
 
 
 def style_fig(fig, height=None):
