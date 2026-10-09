@@ -4,9 +4,4 @@ __pycache__/
 .pytest_cache/
 .streamlit/secrets.toml
 results_*/
-docs/article/_header.tex
 figures_*/
-docs/article_smd/out/latex/*.aux
-docs/article_smd/out/latex/*.log
-docs/article_smd/out/latex/*.out
-docs/article_smd/out/latex/*.pdf

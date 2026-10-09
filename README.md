@@ -56,7 +56,7 @@ with ground truth from real data; (O3) test H1–H3 statistically across dataset
 | Elec2 (natural) | co-movement, no lead | corr(LR, error) = 0.30 at lag 0, symmetric; KS on inputs raises 148 alarms vs 7 for PH[LR] |
 
 Honest caveat: on the clean synthetic drifts a plain feature-wise KS test is a better early-warning detector;
-on the natural stream it is unusable. Full report: `results/summary/hypotheses.md`; article: `docs/article/`.
+on the natural stream it is unusable. Full report: `results/summary/hypotheses.md` (every number in the article is taken from it).
 
 ## 3. Repository layout
 ```
@@ -75,10 +75,8 @@ bdx/                 the tool (importable package)
 config/default.yaml  every parameter of the paper (single source of truth)
 data/raw/            the exact data files (verified by checksum); data/DATASETS.md
 results/             raw results + summary tables + hypotheses.md (auto-generated)
-figures/             paper figures (auto-generated)
+figures/             paper figures (auto-generated; Romanian copies in figures/ro/)
 docs/GUIDE.md        study guide: theory -> implementation, line by line
-docs/article/        the long-form paper (Romanian): articol.md source, articol.docx, articol.pdf, build.py
-docs/article_smd/    the conference paper on the official SMD-UTM 2026 template (Word + LaTeX), build_smd.py
 tests/               unit tests of the from-scratch components
 streamlit_app.py     interactive interface
 static/fonts/        bundled open-licence fonts for the app (Atkinson Hyperlegible, Bricolage Grotesque)
@@ -92,13 +90,11 @@ static/fonts/        bundled open-licence fonts for the app (Atkinson Hyperlegib
    python -m venv .venv
    # Windows: .venv\Scripts\activate      macOS/Linux: source .venv/bin/activate
    pip install -r requirements.txt
-   pytest -q                         # 8 tests, ~20 s
+   pytest -q                         # 9 tests, ~20 s
    python -m bdx.run_all --quick     # 5-10 min sanity run (2 seeds, MC-Dropout only) into results_quick/
    python -m bdx.analyze --res results_quick --fig figures_quick   # its tables and figures
    python -m bdx.run_all             # full grid (≈ 45-60 min on a 2-core laptop)
    python -m bdx.analyze             # tables, tests, figures
-   python docs/article/build.py      # rebuild the long article (needs pandoc; PDF needs xelatex)
-   python docs/article_smd/build_smd.py   # rebuild the SMD-UTM conference paper: .docx on the template + .tex/.pdf
    streamlit run streamlit_app.py    # opens http://localhost:8501
    ```
    In VS Code pick the interpreter `.venv` (`Ctrl+Shift+P` → *Python: Select Interpreter*).
