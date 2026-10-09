@@ -77,7 +77,8 @@ data/raw/            the exact data files (verified by checksum); data/DATASETS.
 results/             raw results + summary tables + hypotheses.md (auto-generated)
 figures/             paper figures (auto-generated)
 docs/GUIDE.md        study guide: theory -> implementation, line by line
-docs/article/        the paper (Romanian): articol.md source, articol.docx, articol.pdf, build.py
+docs/article/        the long-form paper (Romanian): articol.md source, articol.docx, articol.pdf, build.py
+docs/article_smd/    the conference paper on the official SMD-UTM 2026 template (Word + LaTeX), build_smd.py
 tests/               unit tests of the from-scratch components
 streamlit_app.py     interactive interface
 static/fonts/        bundled open-licence fonts for the app (Atkinson Hyperlegible, Bricolage Grotesque)
@@ -96,7 +97,8 @@ static/fonts/        bundled open-licence fonts for the app (Atkinson Hyperlegib
    python -m bdx.analyze --res results_quick --fig figures_quick   # its tables and figures
    python -m bdx.run_all             # full grid (≈ 45-60 min on a 2-core laptop)
    python -m bdx.analyze             # tables, tests, figures
-   python docs/article/build.py      # rebuild the article (needs pandoc; PDF needs xelatex)
+   python docs/article/build.py      # rebuild the long article (needs pandoc; PDF needs xelatex)
+   python docs/article_smd/build_smd.py   # rebuild the SMD-UTM conference paper: .docx on the template + .tex/.pdf
    streamlit run streamlit_app.py    # opens http://localhost:8501
    ```
    In VS Code pick the interpreter `.venv` (`Ctrl+Shift+P` → *Python: Select Interpreter*).

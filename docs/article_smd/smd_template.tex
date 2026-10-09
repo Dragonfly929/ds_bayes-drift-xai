@@ -1,0 +1,62 @@
+% LaTeX version of the SMD-UTM 2026 paper template (Conferința Tehnico-Științifică a Studenților,
+% Masteranzilor și Doctoranzilor, Universitatea Tehnică a Moldovei). Compile with XeLaTeX (Overleaf:
+% Menu -> Compiler -> XeLaTeX). Times New Roman is used if installed, otherwise its free clone TeX Gyre Termes.
+\documentclass[12pt,a4paper]{article}
+
+% ---- page: A4 portrait; top, bottom, right 2.0 cm, left 2.5 cm (template rule)
+\usepackage[a4paper,top=2cm,bottom=2cm,right=2cm,left=2.5cm,headheight=46pt,headsep=14pt,
+            footskip=38pt,includeheadfoot=false]{geometry}
+
+% ---- fonts: Times New Roman 12 pt
+\usepackage{amsmath,amssymb}
+\usepackage{fontspec}
+\IfFontExistsTF{Times New Roman}{\setmainfont{Times New Roman}}{\setmainfont{TeX Gyre Termes}}
+\usepackage[provide=*,romanian]{babel}
+
+% ---- paragraphs: single spacing, every paragraph indented 1.25 cm
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+\usepackage{indentfirst}
+\usepackage{microtype}
+
+% ---- headings: bold 12 pt, indented 1.25 cm, not numbered, blank line before
+\usepackage{titlesec}
+\setcounter{secnumdepth}{0}
+\titleformat{\section}{\normalfont\normalsize\bfseries}{}{0pt}{\hspace*{1.25cm}}
+\titlespacing*{\section}{0pt}{12pt}{0pt}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries\itshape}{}{0pt}{\hspace*{1.25cm}}
+\titlespacing*{\subsection}{0pt}{6pt}{0pt}
+
+% ---- figures: centred; caption below, "Figura n." bold, 11 pt, centred
+\usepackage{graphicx,float}
+\usepackage[font={small,bf},labelfont=bf,labelsep=period,justification=centering,skip=4pt]{caption}
+\captionsetup[figure]{name=Figura}
+\setlength{\abovecaptionskip}{4pt}
+
+% ---- tables: 10 pt, full width, all borders
+\usepackage{array,tabularx}
+\renewcommand{\arraystretch}{1.15}
+
+% ---- lists, links
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% ---- header (UTM logo + conference) and footer (place, date, volume, page number)
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.6pt}
+\renewcommand{\footrulewidth}{0.6pt}
+\fancyhead[L]{\raisebox{-2pt}{\includegraphics[height=1.55cm]{logo_utm.png}}}
+\fancyhead[C]{\parbox[b]{12cm}{\centering\fontsize{11}{13}\selectfont\itshape
+  Conferința Tehnico-Științifică a Studenților, Masteranzilor și Doctoranzilor\\
+  Universitatea Tehnică a Moldovei\vspace{2pt}}}
+\fancyfoot[C]{{\fontsize{11}{13}\selectfont\itshape Chișinău, 13-16 Mai, 2026, Vol. N}\\[2pt]
+  {\fontsize{11}{13}\selectfont - \thepage\ -}}
+
+\begin{document}
+\raggedbottom
+$body$
+\end{document}

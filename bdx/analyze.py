@@ -52,6 +52,54 @@ plt.rcParams.update({
 })
 
 
+# Romanian labels for the article (figures/ro/); applied as a text replacement on the finished figure
+RO = {
+    "Credit default, covariate drift, MC-Dropout (seed 0)": "Credit (neplată), deviere covariată, MC-Dropout (sămânța 0)",
+    "rolling accuracy\n(needs labels)": "acuratețe mobilă\n(necesită etichete)",
+    "drift ramp": "rampa devierii", "visible accuracy drop": "scădere vizibilă a acurateței",
+    "uncertainty (nats)": "incertitudine (nats)", "alarms": "alarme",
+    "stream position (samples)": "poziția în flux (eșantioane)", "1-maxprob": "1−max p",
+    "AUROC drifted vs pre-drift\n(0.5 = no information)": "AUROC: deviat vs. pre-deviere\n(0.5 = fără informație)",
+    "all ≈ 0.5:\ninvisible\nwithout labels": "toate ≈ 0.5:\ninvizibil\nfără etichete",
+    "covariate\nP(x)": "covariată\nP(x)", "sensor\nP(x)+P(y|x)": "senzor\nP(x)+P(y|x)",
+    "digits rotation\nP(x)": "rotire cifre\nP(x)", "real\nP(y|x)": "reală\nP(y|x)",
+    "median AUROC (P(x) drifts)": "AUROC median (devieri P(x))",
+    "MC-Dropout\n(Bayesian approx.)": "MC-Dropout\n(bayesian aprox.)",
+    "Deep Ensemble\n(Bayesian approx.)": "Ansamblu profund\n(bayesian aprox.)",
+    "Bootstrap SVM\n(frequentist)": "SVM bootstrap\n(frecventist)",
+    "Random forest\n(frequentist, added)": "Pădure aleatoare\n(frecventist, adăugat)",
+    "Localisation": "Localizare", "Stability": "Stabilitate",
+    "rank of drifted features in Δ|attribution|\n(1 = top, 0.5 = chance)":
+        "rangul trăsăturilor deviate în Δ|atribuire|\n(1 = primele, 0.5 = hazard)",
+    "Spearman ρ of global importance\n(○ pre vs pre, ● pre vs alarm)":
+        "ρ Spearman al importanței globale\n(○ pre vs. pre, ● pre vs. alarmă)",
+    "covariate": "covariată", "sensor": "senzor", "real": "reală",
+    "Early warning vs. false alarms (P(x)-changing drifts)": "Avertizare timpurie vs. alarme false (devieri P(x))",
+    "spurious detection rate on stationary streams (lower is better)":
+        "rata detecțiilor false pe fluxuri staționare (mai mic = mai bine)",
+    "early-warning rate\n(alarm before visible accuracy drop)": "rata avertizării timpurii\n(alarmă înaintea scăderii vizibile)",
+    "Meta-analysis across datasets": "Meta-analiză pe seturi de date",
+}
+
+
+def save_fig(fig, out, name):
+    """Save the English figure, then a Romanian copy in <out>/ro/ for the article."""
+    fig.savefig(os.path.join(out, name), bbox_inches="tight")
+    from matplotlib.text import Text
+    for ax in fig.axes:                 # tick labels are regenerated at draw time: translate through the axis
+        for get, setter, ticks in ((ax.get_xticklabels, ax.set_xticks, ax.get_xticks),
+                                   (ax.get_yticklabels, ax.set_yticks, ax.get_yticks)):
+            labels = [t.get_text() for t in get()]
+            if any(lab in RO for lab in labels):
+                setter(ticks(), [RO.get(lab, lab) for lab in labels])
+    for t in fig.findobj(Text):
+        s = t.get_text()
+        if s in RO:
+            t.set_text(RO[s])
+    os.makedirs(os.path.join(out, "ro"), exist_ok=True)
+    fig.savefig(os.path.join(out, "ro", name), bbox_inches="tight")
+
+
 def scenario(row):
     if row["dataset"] == "digits":
         return "digits rotation" if row["drift"] == "covariate" else "digits none"
@@ -301,7 +349,7 @@ def fig_example(res, out):
     ax.set_xlabel("stream position (samples)")
     ax.set_ylabel("alarms")
     ax.grid(axis="y", visible=False)
-    fig.savefig(os.path.join(out, "fig1_example_trace.png"), bbox_inches="tight")
+    save_fig(fig, out, "fig1_example_trace.png")
     plt.close(fig)
 
 
@@ -329,7 +377,7 @@ def fig_auroc(sig, out):
     ax.set_ylim(0.2, 1.0)
     ax.legend(ncol=5, loc="upper center", bbox_to_anchor=(0.5, 1.16))
     ax.grid(axis="x", visible=False)
-    fig.savefig(os.path.join(out, "fig2_signal_auroc.png"), bbox_inches="tight")
+    save_fig(fig, out, "fig2_signal_auroc.png")
     plt.close(fig)
 
 
@@ -364,7 +412,7 @@ def fig_tradeoff(tab, out):
               title_fontsize=7.5, fontsize=7.5)
     ax.set_xlim(right=ax.get_xlim()[1] + 0.02)
     ax.set_title("Early warning vs. false alarms (P(x)-changing drifts)", loc="left", **TITLE)
-    fig.savefig(os.path.join(out, "fig3_tradeoff.png"), bbox_inches="tight")
+    save_fig(fig, out, "fig3_tradeoff.png")
     plt.close(fig)
 
 
@@ -382,7 +430,7 @@ def fig_forest(st, ma, out):
     ax.set_xlabel("delay advantage of PH[log(EU/AU)] over PH[error]  (samples; >0 = earlier)")
     ax.set_title("Meta-analysis across datasets", loc="left", **TITLE)
     ax.grid(axis="y", visible=False)
-    fig.savefig(os.path.join(out, "fig4_meta_forest.png"), bbox_inches="tight")
+    save_fig(fig, out, "fig4_meta_forest.png")
     plt.close(fig)
 
 
@@ -418,7 +466,7 @@ def fig_xai(xai, out):
     axes[1].set_title("Stability", loc="left", **TITLE)
     axes[1].grid(axis="x", visible=False)
     axes[0].legend(ncol=5, loc="upper left", bbox_to_anchor=(0, 1.25), fontsize=7.5)
-    fig.savefig(os.path.join(out, "fig5_xai.png"), bbox_inches="tight")
+    save_fig(fig, out, "fig5_xai.png")
     plt.close(fig)
 
 
@@ -434,7 +482,7 @@ def fig_elec(el_t, out):
     ax.set_ylabel("corr(signal_t, error_{t+k})")
     ax.set_title("Elec2 natural drift: lead-lag with moving-block bootstrap 95% CI", loc="left", **TITLE)
     ax.legend()
-    fig.savefig(os.path.join(out, "fig6_elec2_leadlag.png"), bbox_inches="tight")
+    save_fig(fig, out, "fig6_elec2_leadlag.png")
     plt.close(fig)
 
 
@@ -455,7 +503,7 @@ def fig_models(by_model, out):
     ax.set_ylim(0.3, 1.0)
     ax.legend(ncol=5, loc="upper center", bbox_to_anchor=(0.5, 1.18), fontsize=7.5)
     ax.grid(axis="x", visible=False)
-    fig.savefig(os.path.join(out, "fig7_bayes_vs_freq.png"), bbox_inches="tight")
+    save_fig(fig, out, "fig7_bayes_vs_freq.png")
     plt.close(fig)
 
 
