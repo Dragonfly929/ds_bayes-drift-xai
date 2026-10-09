@@ -72,28 +72,37 @@
 \end{center}
 \vspace{6pt}
 
-\textbf{\emph{Rezumat.}} Detectoarele clasice de deviere conceptuală
-urmăresc rata de eroare a modelului, deci au nevoie de etichete și
-reacționează abia după ce acuratețea a scăzut. Lucrarea testează dacă
-incertitudinea modelului, calculată numai din intrări, poate da o alarmă
-mai devreme și ce componentă a ei este utilă. Entropia predictivă a unei
-rețele MC-Dropout, a unui ansamblu de rețele și a două ansambluri
-frecventiste (SVM și pădure aleatoare) este separată în incertitudine
-aleatorică și epistemică, iar raportul lor logaritmic este propus ca
-semnal de monitorizare. Pe 225 de fluxuri construite din date reale, cu
-moment de deviere cunoscut, și pe fluxul natural Elec2, cinci ipoteze
-stabilite în prealabil au fost testate statistic. Raportul separă cel
-mai bine datele deviate pentru rețelele neuronale (AUROC 0.80 față de
-0.67), dar nu și pentru modelele frecventiste. Alarma fără etichete vine
-mai devreme decât detectoarele bazate pe eroare, însă precede scăderea
-vizibilă a acurateței doar în 51 \% din cazuri. Devierea relației dintre
-intrări și etichete rămâne invizibilă fără etichete, iar SHAP, spre
-deosebire de LIME, indică trăsăturile care au deviat. Codul și datele
-permit reproducerea integrală.
+{\itshape\let\emph\textit
 
-\textbf{\emph{Cuvinte cheie:}} \emph{informație mutuală, monte carlo
-dropout, monitorizare fără etichete, valori shapley, inferență
+\noindent \textbf{\emph{Rezumat.}} Detectoarele clasice de deviere
+conceptuală urmăresc rata de eroare a modelului, deci au nevoie de
+etichete și reacționează abia după ce acuratețea a scăzut. Lucrarea
+testează dacă incertitudinea modelului, calculată numai din intrări,
+poate da o alarmă mai devreme și ce componentă a ei este utilă. Entropia
+predictivă a unei rețele MC-Dropout, a unui ansamblu de rețele și a două
+ansambluri frecventiste (SVM și pădure aleatoare) este separată în
+incertitudine aleatorică și epistemică, iar raportul lor logaritmic este
+propus ca semnal de monitorizare. Pe 225 de fluxuri construite din date
+reale, cu moment de deviere cunoscut, și pe fluxul natural Elec2, cinci
+ipoteze stabilite în prealabil au fost testate statistic. Raportul
+separă cel mai bine datele deviate pentru rețelele neuronale (aria de
+sub curba ROC 0.80 față de 0.67), dar nu și pentru modelele
+frecventiste. Alarma fără etichete vine mai devreme decât detectoarele
+bazate pe eroare, însă precede scăderea vizibilă a acurateței doar în 51
+\% din cazuri. Devierea relației dintre intrări și etichete rămâne
+invizibilă fără etichete, iar SHAP, spre deosebire de LIME, indică
+trăsăturile care au deviat. Codul și datele permit reproducerea
+integrală.
+
+\par}
+
+\vspace{12pt}{\itshape\let\emph\textit
+
+\noindent \textbf{\emph{Cuvinte cheie:}} \emph{informație mutuală, monte
+carlo dropout, monitorizare fără etichete, valori shapley, inferență
 statistică.}
+
+\par}
 
 \hypertarget{introducere}{%
 \section{Introducere}\label{introducere}}
@@ -102,22 +111,25 @@ Un model de învățare automată este antrenat pe date istorice și apoi
 folosit pe date noi, a căror distribuție
 \(P_t(x,y)=P_t(x)\,P_t(y\mid x)\) se schimbă în timp. Fenomenul se
 numește deviere conceptuală (\emph{concept drift}) {[}1,2{]}.
-Detectoarele uzuale, DDM {[}3{]}, ADWIN {[}4{]} și Page-Hinkley (PH)
-{[}5{]}, urmăresc rata de eroare. Ele au nevoie de eticheta reală a
-fiecărei predicții, care în creditare sau în detectarea fraudei sosește
-după luni, și reacționează după ce acuratețea a scăzut.
+Detectoarele uzuale, DDM (\emph{Drift Detection Method}) {[}3{]}, ADWIN
+(\emph{ADaptive WINdowing}) {[}4{]} și Page-Hinkley (PH) {[}5{]},
+urmăresc rata de eroare. Ele au nevoie de eticheta reală a fiecărei
+predicții, care în creditare sau în detectarea fraudei sosește după
+luni, și reacționează după ce acuratețea a scăzut.
 
 O alternativă este incertitudinea modelului însuși. Baier et al.~{[}6{]}
-monitorizează incertitudinea \emph{totală} a unei rețele MC-Dropout.
-Teoria bayesiană permite însă separarea incertitudinii în componenta
-aleatorică (AU, zgomotul din date) și cea epistemică (EU, ignoranța
-modelului) {[}7--9{]}. Contribuțiile lucrării sunt: (i) raportul
-\(\log(EU/AU)\) ca semnal de monitorizare, comparat direct cu
-componentele sale; (ii) demonstrarea limitei oricărei detecții fără
-etichete; (iii) validarea alarmelor prin explicarea funcției \(EU(x)\)
-cu SHAP și LIME; (iv) comparația dintre incertitudinea bayesiană și cea
-frecventistă; (v) fluxuri semi-sintetice cu moment și trăsături de
-deviere cunoscute.
+monitorizează incertitudinea \emph{totală} a unei rețele Monte Carlo
+Dropout (MC-Dropout). Teoria bayesiană permite însă separarea
+incertitudinii în componenta aleatorică (AU, zgomotul din date) și cea
+epistemică (EU, ignoranța modelului) {[}7--9{]}. Contribuțiile lucrării
+sunt: (i) raportul \(\log(EU/AU)\) ca semnal de monitorizare, comparat
+direct cu componentele sale; (ii) demonstrarea limitei oricărei detecții
+fără etichete; (iii) validarea alarmelor prin metode de inteligență
+artificială explicabilă (XAI): explicarea funcției \(EU(x)\) cu SHAP
+(\emph{SHapley Additive exPlanations}) și LIME (\emph{Local
+Interpretable Model-agnostic Explanations}); (iv) comparația dintre
+incertitudinea bayesiană și cea frecventistă; (v) fluxuri semi-sintetice
+cu moment și trăsături de deviere cunoscute.
 
 Ipotezele, fixate înainte de experimente, sunt: \textbf{H1} -- sub
 devieri ale lui \(P(x)\), alarma pe \(\log(EU/AU)\) precede scăderea
@@ -137,14 +149,16 @@ incertitudinii}\label{modele-ux219i-descompunerea-incertitudinii}}
 
 Antrenarea prin entropie încrucișată este o estimare de verosimilitate
 maximă, iar penalizarea L2 corespunde unei distribuții a priori
-gaussiene (estimare MAP). Distribuția a posteriori a ponderilor este
-aproximată prin MC-Dropout cu \(T=30\) măști fixe {[}10{]} și printr-un
-ansamblu de \(M=5\) rețele {[}11{]}. Ca termen frecventist se folosesc
-10 SVM-uri cu nucleu RBF antrenate pe eșantioane bootstrap. Ca analiză
-suplimentară, adăugată după studiul principal, se folosește o pădure
-aleatoare de 50 de arbori {[}12{]}, descompusă ca în {[}13{]}. Pentru
-\(S\) distribuții predictive eșantionate \(p_s\), descompunerea {[}8{]}
-este dată de Ec. (1):
+gaussiene (estimare \emph{maximum a posteriori}, MAP). Rețelele au două
+straturi ascunse de 64 de neuroni cu activare ReLU (\emph{rectified
+linear unit}). Distribuția a posteriori a ponderilor este aproximată
+prin MC-Dropout cu \(T=30\) măști fixe {[}10{]} și printr-un ansamblu de
+\(M=5\) rețele {[}11{]}. Ca termen frecventist se folosesc 10 mașini cu
+vectori-suport (SVM) cu nucleu gaussian (RBF), antrenate pe eșantioane
+bootstrap. Ca analiză suplimentară, adăugată după studiul principal, se
+folosește o pădure aleatoare de 50 de arbori {[}12{]}, descompusă ca în
+{[}13{]}. Pentru \(S\) distribuții predictive eșantionate \(p_s\),
+descompunerea {[}8{]} este dată de Ec. (1):
 
 \begin{equation}
 \underbrace{H\Big[\frac{1}{S}\sum_{s} p_s\Big]}_{TU} = \underbrace{\frac{1}{S}\sum_{s} H[p_s]}_{AU} + \underbrace{I(y;\theta \mid x)}_{EU}
@@ -205,23 +219,26 @@ inferență}\label{detectori-evaluare-ux219i-inferenux21bux103}}
 
 Semnalele fără etichete sunt monitorizate cu PH, ADWIN, o detecție
 bayesiană online a punctelor de schimbare (BOCPD) {[}19{]} și un amestec
-gaussian estimat prin EM {[}20{]}, ultimele două implementate de autor,
-alături de testul Kolmogorov-Smirnov pe intrări {[}21{]}. Pragurile sunt
-calibrate astfel încât probabilitatea unei alarme false pe un flux
-staționar să fie cel mult 0.10. Scăderea vizibilă a acurateței este
-primul moment în care acuratețea pe ultimele 300 de înregistrări scade
-cu peste trei erori standard sub nivelul inițial. Atribuirile sunt
-calculate cu KernelSHAP {[}22{]}, GradientSHAP și LIME {[}23{]}.
+gaussian estimat prin algoritmul \emph{Expectation-Maximization} (EM)
+{[}20{]}, ultimele două implementate de autor, alături de testul
+Kolmogorov-Smirnov pe intrări {[}21{]}. Pragurile sunt calibrate astfel
+încât probabilitatea unei alarme false pe un flux staționar să fie cel
+mult 0.10. Scăderea vizibilă a acurateței este primul moment în care
+acuratețea pe ultimele 300 de înregistrări scade cu peste trei erori
+standard sub nivelul inițial. Separabilitatea unui semnal este măsurată
+prin aria de sub curba ROC (AUROC; 0.5 înseamnă nicio informație).
+Atribuirile sunt calculate cu KernelSHAP {[}22{]}, GradientSHAP și LIME
+{[}23{]}.
 
 Înregistrările dintr-un flux nu sunt independente, de aceea unitatea de
 analiză este rularea. Au fost efectuate 225 de rulări (12 scenarii × 3
 modele × 5 semințe, plus 45 de ablații), testate cu Wilcoxon și corecție
-Holm {[}24{]}, echivalența cu hazardul prin TOST {[}25{]}, fluxul Elec2
-prin bootstrap pe blocuri {[}26{]}, iar rezultatele pe seturi de date au
-fost agregate prin meta-analiză cu efecte aleatoare {[}27{]}. Toți
-parametrii se află într-un singur fișier de configurare, o rulare
-completă durează aproximativ o oră pe un calculator cu două nuclee, iar
-rezultatele au fost reproduse identic pe o copie nouă a depozitului.
+Holm {[}24{]}, echivalența cu hazardul prin testul TOST (\emph{two
+one-sided tests}) {[}25{]}, fluxul Elec2 prin bootstrap pe blocuri
+{[}26{]}, iar rezultatele pe seturi de date au fost agregate prin
+meta-analiză cu efecte aleatoare {[}27{]}. Toți parametrii se află
+într-un singur fișier de configurare, iar rezultatele au fost reproduse
+identic pe o copie nouă a depozitului.
 
 \hypertarget{rezultate-ux219i-discuux21bii}{%
 \section{Rezultate și discuții}\label{rezultate-ux219i-discuux21bii}}
@@ -276,14 +293,13 @@ Pădure aleatoare (frecventist, analiză suplimentară) & 0.613 & 0.775 & 0.681 
 \textbf{H1 nu este confirmată în forma sa tare.} Alarma pe LR vine mai
 devreme decât DDM, ADWIN și PH pe eroare (diferențe mediane de 129, 268
 și 99 de înregistrări, \(p\le0.007\)), dar precede scăderea vizibilă
-doar în 51 \% din cele 53 de rulări relevante (avans median 30, IC 95 \%
-{[}−25; 151{]}, \(p_{Holm}=0.24\)). Testul KS pe intrări avertizează mai
-des pe aceste devieri sintetice, însă pe fluxul Elec2 produce 148 de
-alarme, față de 7 pentru PH pe LR. Pe Elec2, LR variază împreună cu
-eroarea (\(r=0.30\)), fără a o anticipa. Fig. 4 rezumă compromisul
-dintre avertizarea timpurie și alarmele false pentru toți detectorii:
-detectoarele bazate pe eroare aproape niciodată nu avertizează înaintea
-scăderii vizibile, deoarece urmăresc chiar eroarea.
+doar în 51 \% din cele 53 de rulări relevante (avans median 30, interval
+de încredere 95 \% {[}−25; 151{]}, \(p_{Holm}=0.24\)). Testul KS pe
+intrări avertizează mai des pe aceste devieri sintetice, însă pe fluxul
+Elec2 produce 148 de alarme, față de 7 pentru PH pe LR. Pe Elec2, LR
+variază împreună cu eroarea (\(r=0.30\)), fără a o anticipa. Fig. 4
+arată că detectoarele bazate pe eroare aproape niciodată nu avertizează
+înaintea scăderii vizibile, deoarece urmăresc chiar eroarea.
 
 \begin{figure}[H]\centering
 \includegraphics[width=15cm]{figures/fig3_tradeoff.png}
